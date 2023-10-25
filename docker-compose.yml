@@ -1,0 +1,42 @@
+version: '3.4'
+services:
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - 8080:8080
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - 3000:3000
+    volumes:
+      - ./backend:/app
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+
+  webserver:
+    image: nginx:alpine
+    container_name: webserver
+    ports:
+      - 80:80
+    volumes:
+      - ./etc/nginx/conf.d/default.conf.nginx:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend
+
+  database:
+    image: mariadb:latest
+    container_name: db
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_DATABASE: dbname
+      MYSQL_ROOT_PASSWORD: dbpass
+    volumes:
+      - ./sql:/var/lib/mysql
