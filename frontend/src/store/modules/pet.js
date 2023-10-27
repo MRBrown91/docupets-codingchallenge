@@ -248,7 +248,7 @@ const mutations = {
     updateBreed (state, breed) {
         state.breed = breed
     },
-    updateNoBreedReason (state, nobreedReason) {
+    updateNobreedReason (state, nobreedReason) {
         state.nobreedReason = nobreedReason
     },
     updateMixBreed (state, mixbreed) {

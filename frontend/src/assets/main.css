@@ -25,6 +25,10 @@ body {
     padding: 10px;
 }
 
+.page-header {
+    color: #013B73;
+}
+
 @media (min-width: 576px) {
     .navbar {
         margin-bottom: 10px;

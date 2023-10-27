@@ -1,5 +1,5 @@
 <template>
-  <div class="container border rounded">
+  <div id="petForm" class="container border rounded">
     <template v-if="loading">
       <div class="d-flex justify-content-center">
         <div class="spinner-border text-primary" role="status"></div>
@@ -7,93 +7,98 @@
     </template>
     <template v-else>
       <div class="page-header">
-        <h2 v-if="!isExisting">Tell us about your {{ typeDisplay }}</h2>
-        <h2 v-else>Update us about your {{ typeDisplay }}</h2>
+        <img src="@/assets/paws.png" class="d-flex justify-content-center mx-auto" alt="Paws">
+        <h2 v-if="!isExisting" class="d-flex justify-content-center">Tell us about your {{ typeDisplay }}</h2>
+        <h2 v-else class="d-flex justify-content-center">Update us about your {{ typeDisplay }}</h2>
       </div>
       <div class="row">
-        <div class="col-sm-10">
-          <div
-              v-if="hasServerError"
-              class="alert alert-danger alert-dismissible fade show"
-              role="alert">
-            {{ getServerError }}
-            <button type="button" class="btn-close" @click="closeError"></button>
-          </div>
-          <div
-              v-if="hasSuccess"
-              class="alert alert-success alert-dismissible fade show"
-              role="alert">
-            {{ getSuccess }}
-            <button type="button" class="btn-close" @click="closeSuccess"></button>
-          </div>
-
-          <Field
-              field-key="type"
-              field-name="What type of pet do you have?"
-              :field-errors="errors.type">
-            <br>
-            <RadioGroup :options="types" field="pet-types" :model-value="type" @input="(value) => this.type=value" />
-            <br>
-          </Field>
-
-          <Field
-              field-key="name"
-              :field-name="'What is your ' + typeDisplay + 's name?'"
-              :field-errors="errors.name">
-            <input
-                type="text"
-                class="form-control"
-                :class="{ 'is-invalid': errors.name }"
-                id="name"
-                name="name"
-                v-model="name"
-            />
-          </Field>
-
-          <Field
-              field-key="breed"
-              :field-name="'What breed are they?'"
-              :field-errors="errors.breed">
-            <v-select :options="breedList" :filter="breedSearch" :disabled="!breedLoaded" v-model="breed"></v-select>
-            <div v-if="noBreed" class="ps-lg-5 ps-xl-5">
-              <label>Choose One</label>
-              <RadioGroup
-                  :options="nobreedReasons"
-                  :model-value="noBreedReason"
-                  @input="(value) => this.noBreedReason=value"
-                  field="noBreedReason"
-                  type="form"/>
-              <input
-                  v-if="isMix"
-                  type="text"
-                  class="form-control"
-                  id="mixBreed"
-                  name="mixBreed"
-                  placeholder="Collie, poodle, lab"
-                  v-model="mixBreed"/>
+        <div class="span12">
+          <form v-on:submit.prevent class="form-horizontal">
+            <div
+                v-if="hasServerError"
+                class="alert alert-danger alert-dismissible fade show"
+                role="alert">
+              {{ getServerError }}
+              <button type="button" class="btn-close" @click="closeError"></button>
+            </div>
+            <div
+                v-if="hasSuccess"
+                class="alert alert-success alert-dismissible fade show"
+                role="alert">
+              {{ getSuccess }}
+              <button type="button" class="btn-close" @click="closeSuccess"></button>
             </div>
 
-          </Field>
+            <Field
+                field-key="type"
+                field-name="What type of pet do you have?"
+                :field-errors="errors.type">
+              <br>
+              <RadioGroup :options="types" field="pet-types" :model-value="type" @input="(value) => this.type=value" />
+              <br>
+            </Field>
 
-          <Field
-              field-key="gender"
-              field-name="What gender are they?"
-              :field-errors="errors.gender">
-            <br>
-            <RadioGroup :options="genders" field="gender" :model-value="gender" @input="(value) => this.gender=value" />
-            <br>
-          </Field>
+            <Field
+                field-key="name"
+                :field-name="'What is your ' + typeDisplay + 's name?'"
+                :field-errors="errors.name">
+              <input
+                  type="text"
+                  class="form-control"
+                  :class="{ 'is-invalid': errors.name }"
+                  id="name"
+                  name="name"
+                  v-model="name"
+              />
+            </Field>
 
-          <button v-if="submitting" class="btn btn-primary" type="button" disabled>
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            Loading...
-          </button>
-          <button
-              v-else @click="save"
-              class="btn btn-success"
-              :disabled='hasError'>
-            Submit
-          </button>
+            <Field
+                field-key="breed"
+                :field-name="'What breed are they?'"
+                :field-errors="errors.breed">
+              <v-select :options="breedList" :filter="breedSearch" :disabled="!breedLoaded" v-model="breed"></v-select>
+              <div v-if="noBreed" class="ps-lg-5 ps-xl-5">
+                <label>Choose One</label>
+                <RadioGroup
+                    :options="nobreedReasons"
+                    :model-value="nobreedReason"
+                    @input="(value) => this.nobreedReason=value"
+                    field="nobreedReason"
+                    type="form"/>
+                <input
+                    v-if="isMix"
+                    type="text"
+                    class="form-control"
+                    id="mixBreed"
+                    name="mixBreed"
+                    placeholder="Collie, poodle, lab"
+                    v-model="mixBreed"/>
+              </div>
+
+            </Field>
+
+            <Field
+                field-key="gender"
+                field-name="What gender are they?"
+                :field-errors="errors.gender">
+              <br>
+              <RadioGroup :options="genders" field="gender" :model-value="gender" @input="(value) => this.gender=value" />
+              <br>
+            </Field>
+
+            <div class="form-group d-grid mt-2">
+              <button v-if="submitting" class="btn btn-primary btn-block" type="button" disabled>
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                Loading...
+              </button>
+              <button
+                  v-else @click="save"
+                  class="btn btn-primary btn-lg btn-block"
+                  :disabled='hasError'>
+                Submit
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </template>
@@ -158,12 +163,12 @@ export default {
         this.$store.dispatch('pet/validateBreed')
       }
     },
-    noBreedReason: {
+    nobreedReason: {
       get () {
-        return this.$store.state.pet.noBreedReason
+        return this.$store.state.pet.nobreedReason
       },
       set (value) {
-        this.$store.commit('pet/updateNoBreedReason', value)
+        this.$store.commit('pet/updateNobreedReason', value)
         this.$store.dispatch('pet/validateBreed')
       }
     },

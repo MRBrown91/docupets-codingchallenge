@@ -1,18 +1,16 @@
 <template>
-  <div :class="type==='form' ? 'form-check' : ''">
-    <input
-        type="radio"
-        :class="type==='form' ? 'form-check-input' : 'btn-check'"
-        :id="id"
-        :value="option"
-        :checked="checked"
-        @change="$emit('input', $event.target.value)"/>
-    <label
-        :class="type==='form' ? 'form-check-label' : 'btn btn-secondary'"
-        :for="id">
-      {{ label }}
-    </label>
-  </div>
+  <input
+      type="radio"
+      :class="type==='form' ? 'form-check-input' : 'btn-check'"
+      :id="id"
+      :value="option"
+      :checked="checked"
+      @change="$emit('input', $event.target.value)"/>
+  <label
+      :class="type==='form' ? 'form-check-label' : 'btn btn-outline-primary'"
+      :for="id">
+    {{ label }}
+  </label>
 </template>
 
 <script>

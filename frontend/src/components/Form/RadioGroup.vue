@@ -1,13 +1,24 @@
 <template>
   <div :class="type==='button' ? 'btn-group' : ''">
     <template v-for="(name, key) in options">
-      <RadioButton
-        :id="field + '-' + key"
-        :option="key"
-        :label="name"
-        :checked="modelValue === key"
-        :type="type"
-        @input="(value) => $emit('input', value)"/>
+      <div v-if="type==='form'" class='form-check'>
+        <RadioButton
+            :id="field + '-' + key"
+            :option="key"
+            :label="name"
+            :checked="modelValue === key"
+            :type="type"
+            @input="(value) => $emit('input', value)"/>
+      </div>
+      <template v-else>
+        <RadioButton
+          :id="field + '-' + key"
+          :option="key"
+          :label="name"
+          :checked="modelValue === key"
+          :type="type"
+          @input="(value) => $emit('input', value)"/>
+      </template>
     </template>
   </div>
 </template>
