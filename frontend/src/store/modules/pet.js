@@ -2,33 +2,50 @@ import axios from "axios";
 
 const path = 'http://localhost/api/';
 
+const buildPayload = (state) => {
+    let payload = {
+        'name': state.name,
+        'type': state.type,
+        'gender': state.gender
+    }
+    if (state.breed === 'Can\'t find it?') {
+        payload.nobreedReason = state.nobreedReason
+        if (payload.nobreedReason === 'mix') {
+            payload.mixbreed = state.mixbreed
+        }
+    } else {
+        payload.breed = state.breed
+    }
+    return JSON.stringify(payload);
+};
+
 const state = () => ({
-    'petId': null,
-    'petName': '',
-    'petType': null,
-    'breed': '',
-    'noBreedReason': null,
-    'mixBreed': null,
+    'id': null,
+    'name': '',
+    'type': null,
+    'breed': null,
+    'nobreedReason': null,
+    'mixbreed': null,
     'gender': '',
-    'loading': false,
+    'submitting': false,
     'redirect': null,
-    'success': null,
     'errors': {},
+    'success': null,
     'server_error': null,
 })
 
 const getters = {
     isExisting: (state) => {
-        return !!state.petId
+        return !!state.id
     },
-    petTypeDisplay: (state) => {
-        return state.petType ?  state.petType.toLowerCase() : 'pet'
+    typeDisplay: (state) => {
+        return state.type ?  state.type.toLowerCase() : 'pet'
     },
     noBreed: (state) => {
         return state.breed === 'Can\'t find it?'
     },
     isMix: (state) => {
-        return state.breed === 'Can\'t find it?' && state.noBreedReason === 'mix'
+        return state.breed === 'Can\'t find it?' && state.nobreedReason === 'mix'
     },
     hasError: (state) => {
         return Object.keys(state.errors).length > 0
@@ -38,46 +55,52 @@ const getters = {
     },
     getServerError: (state) => {
         return state.server_error
+    },
+    hasSuccess: (state) => {
+        return !!state.success
+    },
+    getSuccess: (state) => {
+        return state.success
     }
 }
 
 const actions = {
     async loadPet ({ state, commit }) {
         try {
+            commit("setLoading", true);
+
             const response = await axios.get(
-                path + 'pets/' + state.petId
+                path + 'pets/' + state.id
             );
             if (response.status !== 200) {
                 throw new Error('Pet query endpoint did not return 200')
             }
-            if (!response.data) {
+            if (!response.data.data) {
                 throw new Error('Pet query response is empty')
             }
-            if (response.data.status !== 'success') {
-                throw new Error('Pet query did not return a success')
-            }
 
-            commit("setPet", response.data.pet)
+            commit("setLoading", false);
+            commit("setPet", response.data.data)
+            commit("breeds/updateType", response.data.data.type, { root: true })
         } catch (e) {
+            commit("setLoading", false);
+            commit("setError", 'Pet could not be loaded');
             commit("unsetPet");
+            commit("breeds/updateType", null, { root: true })
+            commit("setRedirect", '/');
         }
     },
     async addPet ({ state, commit }) {
         try {
-            commit("setLoading", true);
+            commit("setSubmitting", true);
 
             // Build Payload
-            const json = JSON.stringify({
-                'petName': state.petName,
-                'petType': state.petType,
-                'breed': state.breed,
-                'gender': state.gender
-            });
+            const payload = buildPayload(state)
 
             // Send Request
             const response = await axios.post(
                 path + 'pets/',
-                json,
+                payload,
                 {
                     headers: {
                         'Content-Type': 'application/json'
@@ -89,41 +112,37 @@ const actions = {
             if (response.status !== 201) {
                 throw new Error('Pet create endpoint did not return 201')
             }
-            if (response.data.status !== 'success') {
-                throw new Error('Pet create did not return a success')
-            }
-            if (!response.data.pet) {
+            if (!response.data.data.id) {
                 throw new Error('Newly created pet was not returned')
             }
-            if (!response.data.pet.petId) {
-                throw new Error('Newly created pet id was not returned')
-            }
 
-            commit("setLoading", false);
-            commit("setPet", response.data.pet);
-            commit("setSuccess", state.petName + ' has been successfully added.');
-            commit("setRedirect", '/');
+            commit("setSubmitting", false);
+            commit("setPet", response.data.data);
+            commit("breeds/updateType", response.data.data.type, { root: true })
+            commit("setSuccess", state.name + ' has been successfully added.');
+            commit("setRedirect", '/' + state.id);
         } catch (e) {
-            commit("setLoading", false);
-            commit("setError", e.message);
+            let error = e.message
+            if (axios.isAxiosError(e)) {
+                if (e.response) {
+                    error = e.response.data.message
+                }
+            }
+            commit("setSubmitting", false);
+            commit("setError", error);
         }
     },
     async editPet ({ state, commit }) {
         try {
-            commit("setLoading", true);
+            commit("setSubmitting", true);
 
             // Build Payload
-            const json = JSON.stringify({
-                'petName': state.petName,
-                'petType': state.petType,
-                'breed': state.breed,
-                'gender': state.gender
-            });
+            const payload = buildPayload(state)
 
             // Send Request
             const response = await axios.put(
-                path + 'pets/' + state.petId,
-                json,
+                path + 'pets/' + state.id,
+                payload,
                 {
                     headers: {
                         'Content-Type': 'application/json'
@@ -131,45 +150,38 @@ const actions = {
                 }
             );
 
-            // Check For Errors
-            if (response.status != 200) {
+            if (response.status !== 200) {
                 throw new Error('Pet update endpoint did not return 200')
             }
-            if (response.data.status != 'success') {
-                throw new Error('Pet update did not return a success')
-            }
-            if (!response.data.pet) {
+            if (!response.data.data.id) {
                 throw new Error('Updated pet was not returned')
             }
-            if (!response.data.pet.petId) {
-                throw new Error('Updated pet id was not returned')
-            }
 
-            commit("setLoading", false);
-            commit("setPet", response.data.pet);
-            commit("setSuccess", state.petName + ' has been successfully updated.');
-            commit("setRedirect", '/');
+            commit("setSubmitting", false);
+            commit("setPet", response.data.data);
+            commit("breeds/updateType", response.data.data.type, { root: true })
+            commit("setSuccess", state.name + ' has been successfully updated.');
         } catch (e) {
-            commit("setLoading", false);
+            commit("setSubmitting", false);
             commit("setError", e.message);
         }
     },
-    validatePetName ({ state, commit }) {
+    validateName ({ state, commit }) {
         let validationErrors = []
-        if (state.petName.length === 0) {
+        if (state.name.length === 0) {
             validationErrors.push('Pet Name is a required field.')
         }
-        commit("setValidationErrors", {field: 'petName', errors: validationErrors});
+        commit("setValidationErrors", {field: 'name', errors: validationErrors});
     },
-    validatePetType ({ state, commit }) {
+    validateType ({ state, commit }) {
         let validationErrors = []
-        if (state.petType.length === 0) {
+        if (state.type.length === 0) {
             validationErrors.push('Pet Type is a required field.')
         }
-        if (state.petType != 'dog' && state.petType != 'cat') {
+        if (state.type != 'dog' && state.type != 'cat') {
             validationErrors.push('Pet Type must be either dog or cat.')
         }
-        commit("setValidationErrors", {field: 'petType', errors: validationErrors});
+        commit("setValidationErrors", {field: 'type', errors: validationErrors});
     },
     validateBreed ({ state, commit }) {
         let validationErrors = []
@@ -191,6 +203,9 @@ const actions = {
 }
 
 const mutations = {
+    setSubmitting(state, submitting) {
+        state.submitting = submitting
+    },
     setLoading(state, loading) {
         state.loading = loading
     },
@@ -203,37 +218,41 @@ const mutations = {
     setError(state, error) {
         state.server_error = error
     },
-    setPetId(state, petId) {
-        state.petId = petId
+    setId(state, id) {
+        state.id = id
     },
     setPet(state, pet) {
-        state.petId = pet.petId;
-        state.petName = pet.petName;
-        state.petType = pet.petType;
+        state.id = pet.id;
+        state.name = pet.name;
+        state.type = pet.type;
         state.breed = pet.breed;
+        state.nobreedReason = pet.nobreedReason;
+        state.mixbreed = pet.mixbreed;
         state.gender = pet.gender;
     },
     unsetPet(state) {
-        state.petId = null;
-        state.petName = '';
-        state.petType = '';
-        state.breed = '';
+        state.id = null;
+        state.name = '';
+        state.type = '';
+        state.breed = null;
+        state.nobreedReason = null;
+        state.mixbreed = null;
         state.gender = '';
     },
-    updatePetName (state, petName) {
-        state.petName = petName
+    updateName (state, name) {
+        state.name = name
     },
-    updatePetType (state, petType) {
-        state.petType = petType
+    updateType (state, type) {
+        state.type = type
     },
     updateBreed (state, breed) {
         state.breed = breed
     },
-    updateNoBreedReason (state, noBreedReason) {
-        state.noBreedReason = noBreedReason
+    updateNoBreedReason (state, nobreedReason) {
+        state.nobreedReason = nobreedReason
     },
-    updateMixBreed (state, mixBreed) {
-        state.mixBreed = mixBreed
+    updateMixBreed (state, mixbreed) {
+        state.mixbreed = mixbreed
     },
     updateGender (state, gender) {
         state.gender = gender
