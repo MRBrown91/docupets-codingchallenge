@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\BreedController;
+use App\Http\Controllers\PetController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +16,5 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::apiResource('pets', PetController::class);
+Route::get('breeds', [BreedController::class, 'index'])->name('breeds.index');
