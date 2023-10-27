@@ -3,7 +3,7 @@ server {
     server_name frontend;
     error_log  /var/log/nginx/error.log debug;
     location / {
-        proxy_pass http://frontend:8080;
+        proxy_pass http://frontend:4040;
     }
     location /api/ {
         proxy_pass http://backend:3000/;
