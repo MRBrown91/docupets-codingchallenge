@@ -5,7 +5,8 @@ Oct 26, 2023
 ## Project Setup
 The following commands will pull the application, create the docker containers, and populate the mysql database.
 ```
-git pull 
+git clone https://github.com/MRBrown91/docupets-codingchallenge.git 
+cd docupets-codingchallenge
 docker-compose up -d --build
 docker-compose up
 docker exec backend php artisan migrate:fresh --seed
