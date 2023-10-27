@@ -12,6 +12,7 @@ Oct 26, 2023
 - Updated the Exception handler to replace NotFoundHttpException exception with more human-readable alternative which did not expose application structure 
 
 ## Future Considerations
+- Implement caching, this was only not done due to docker complications
 - The dockerized Laravel API is very slow to return resources.  A more appropriate platform would be needed before release
 - Generate Swagger documentation for API
 - Implement unit testing for controllers
