@@ -16,9 +16,6 @@ services:
       - "3000:3000"
     volumes:
       - ./backend:/app
-    environment:
-      DB_HOST: db
-      DB_PORT: 3306
 
   webserver:
     image: nginx:alpine
